@@ -1,0 +1,104 @@
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class Semantico implements Constants
+{
+    ArrayList<Integer> binaries = new ArrayList<Integer>();
+    ArrayList<Integer> operations = new ArrayList<Integer>();
+    HashMap<String, Integer> map = new HashMap<String, Integer>();
+    
+    Integer val1, val2;
+    Integer result;
+    String var = "";
+    int depth = 0;
+
+    public void calculate() {
+        if(operations.size() != 0) 
+        for (int higherOperation = Collections.max(operations); higherOperation != 0; higherOperation--) {
+            for (int i=0; i < operations.size(); i++) {
+                var operation = operations.get(i);
+                if(operation == higherOperation) {
+                    Integer v1 = binaries.get(i);
+                    Integer v2 = binaries.get((i+1)); 
+                    binaries.remove(i);
+                    binaries.remove(i);
+                    switch(operation % 10) {
+                        case 1: //Soma
+                            binaries.add(i, v1 + v2);
+                        break;
+                        case 2: //Subtração
+                            binaries.add(i, v1 - v2);
+                        break;
+                        case 3: //Multiplicação
+                            binaries.add(i, v1 * v2);
+                        break;
+                        case 4: //Divisão
+                            binaries.add(i, Math.round((v1.floatValue() / v2.floatValue())));
+                        break;
+                        case 5: //Log
+                            binaries.add(i, (int) Math.round(Math.log(v1.doubleValue()) / Math.log(v2.doubleValue())));
+                        break;
+                        case 6: //Exponenciação
+                            binaries.add(i, (int) Math.pow(v1.doubleValue(), v2.doubleValue()));
+                        break;
+                    }
+                }
+            }
+        }
+        result = binaries.getFirst();
+        binaries.removeFirst();
+        operations.clear();
+    }
+
+    public void executeAction(int action, Token token)	throws SemanticError
+    {
+        System.out.println("Ação #"+action+", Token: "+token);
+
+        switch(action) {
+            case 1: //Binario
+                System.out.println(Integer.parseInt(token.getLexeme(), 2));
+                binaries.add(Integer.parseInt(token.getLexeme(), 2));
+            break;
+            case 2: //Variável
+                binaries.add(map.get(token.getLexeme()));
+            break;
+            case 3: //Imprimir
+                calculate();
+                System.out.println(Integer.toBinaryString(result));
+            break;
+            case 4: //Atribuir a variável
+                var = token.getLexeme();
+            break;
+            case 5: //Variável
+                calculate();
+                map.put(var, result);
+                System.out.println(var + " - " + result);
+            break;
+            case 6: //Soma
+                operations.add(depth*10+1);
+            break;
+            case 7: //Subtração
+                operations.add(depth*10+2);
+            break;
+            case 8: //Multiplicação
+                operations.add(depth*10+3);
+            break;
+            case 9: //Divisão
+                operations.add(depth*10+4);
+            break;
+            case 10: //Exponenciação
+                operations.add(depth*10+6);
+            break;
+            case(11): //Log
+                operations.add(depth*10+5);
+            break;
+            case(12): //Abre parenteses
+                depth++;
+            break;
+            case(13): //Fecha parenteses
+                depth-=1;
+            break;
+        }
+    }	
+}
